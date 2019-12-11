@@ -1,0 +1,60 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: openshift-tasks-git
+  namespace: c0e7-tekton
+spec:
+  type: git
+  params:
+  - name: url
+    value: https://gogs-gogs-c0e7-gogs.apps.cluster-raleigh.raleigh.example.opentlc.com/CICDLabs/openshift-tasks.git
+  - name: revision
+    value: master
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: c0e7-openshift-tasks-image
+  namespace: c0e7-tekton
+spec:
+  type: image
+  params:
+  - name: url
+    value: image-registry.openshift-image-registry.svc:5000/c0e7-tekton/openshift-tasks
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: maven-build-binary-build
+  namespace: c0e7-tekton
+spec:
+  inputs:
+    resources:
+    - name: source
+      type: git
+  steps:   
+  - name: package
+    image: maven:3.6.0-jdk-8-slim
+    workingDir: /workspace/source
+    command:
+    - /usr/bin/mvn
+    args:
+    - test -s ./nexus_settings.xml
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: openshift-tasks-pipeline
+  namespace: c0e7-tekton
+spec:
+  resources:
+  - name: openshift-tasks-git
+    type: git
+  tasks:
+  - name: maven-build-binary-build
+    taskRef: 
+      name: maven-build-binary-build
+    resources:
+      inputs:
+      - name: source
+        resource: openshift-tasks-git
