@@ -35,11 +35,14 @@ spec:
   steps:   
   - name: package
     image: maven:3.6.0-jdk-8-slim
-    workingDir: /workspace/source
+    workingDir: /tmp
     command:
     - /usr/bin/mvn
     args:
     - test -s ./nexus_settings.xml
+    env:
+      - name: "MAVEN_CONFIG"
+        value: "/tmp/.m2"
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
