@@ -1,0 +1,13 @@
+kind: "BuildConfig"
+apiVersion: "v1"
+metadata:
+  name: "tasks-pipeline"
+spec:
+  source:
+    type: "Git"
+    git:
+      uri: "http://gogs-gogs.c0e7-gogs.svc.cluster.local:3000/CICDLabs/openshift-tasks-private"
+  strategy:
+    type: "JenkinsPipeline"
+    jenkinsPipelineStrategy:
+      jenkinsfilePath: Jenkinsfile

@@ -59,3 +59,21 @@ oc set volume dc/tasks-green --add --name=jboss-config1 --mount-path=/opt/eap/st
 # Expose Blue service as route to make blue application active
 oc expose svc/tasks-blue --name tasks -n ${GUID}-tasks-prod
 ```
+
+## Setup pipline Jenkins
+
+If you want to use jenkins to run your pipeline go in to jenkins create a pipline item.
+Under Pipeline klick Definition and pick Pipline script from SCM and fill in your requiered info.
+
+## Setup OCP pipeline
+
+So if you want to be able to view your pipeline within openshift you can create a BuildConfig with type "JenkinsPipeline".
+This need to be created in the same namespace as your jenkins master.
+
+```bash
+oc apply -f Buildconfig.yaml -n c0e7-jenkins
+oc create secret generic gogs-secret --from-literal=<user_name> --from-literal=password=<password> -n c0e7-jenkins
+oc set build-secret --source bc/tasks-pipeline gogs-secret -n c0e7-jenkins
+```
+
+You will now see your pipeline under Builds → Build Configs in your jenkins project.

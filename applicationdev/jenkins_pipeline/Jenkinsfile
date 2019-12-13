@@ -57,9 +57,7 @@ pipeline {
     stage('Unit Tests') {
       steps {
         echo "Running Unit Tests"
-        // TODO: Readd comment
-        // sh "${mvnCmd} test"
-
+        sh "${mvnCmd} test"
       }
     }
 
@@ -67,10 +65,9 @@ pipeline {
     stage('Code Analysis') {
       steps {
         echo "Running Code Analysis"
-        /* script {
-          // TODO: Readd comment
-          // sh "${mvnCmd} sonar:sonar -Dsonar.host.url=http://sonarqube-c0e7-sonarqube.apps.cluster-raleigh.raleigh.example.opentlc.com -Dsonar.projectName=${JOB_BASE_NAME} -Dsonar.projectVersion=${devTag}"
-        }*/
+         script {
+          sh "${mvnCmd} sonar:sonar -Dsonar.host.url=http://sonarqube-c0e7-sonarqube.apps.cluster-raleigh.raleigh.example.opentlc.com -Dsonar.projectName=${JOB_BASE_NAME} -Dsonar.projectVersion=${devTag}"
+        }
       }
     }
 

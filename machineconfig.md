@@ -11,7 +11,7 @@ Generate a ssh-key that you want to use. In my case $HOME/.ssh/node.id_rsa.pub
 
 ### What machineconfigs exists
 
-oc get machineconfig
+oc get machineconfig -n openshift-machine-api
 
 ## Add ssh config
 
@@ -26,4 +26,8 @@ Use:
 oc get machineconfigpool
 
 Updated should become True when all your machinesets that match worker have been updated.
-During the lab we have seen errors that this points to an old render.
+Last time i did this we saw a number of errors, this was due to that we tainted our infra nodes.
+
+To workaround this issue you need to allow a number of operators to go to the node, like the machineconfig operator. In our case we put the taint on the daemon set.
+
+More can be read about it in the [bugzilla](https://bugzilla.redhat.com/show_bug.cgi?id=1780318)
