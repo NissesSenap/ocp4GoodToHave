@@ -1,0 +1,21 @@
+apiVersion: velero.io/v1
+kind: VolumeSnapshotLocation
+metadata:
+  name: aws-default
+  namespace: velero
+spec:
+  # Name of the volume snapshotter plugin to use to connect to this location.
+  #
+  # Required.
+  provider: velero.io/aws
+  
+  config:
+    # The AWS region where the volumes/snapshots are located.
+    #
+    # Required.
+    region: eu1
+
+    # AWS profile within the credentials file to use for the volume snapshot location.
+    # 
+    # Optional (defaults to "default").
+    profile: "default"

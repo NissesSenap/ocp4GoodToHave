@@ -34,65 +34,84 @@
   - [Access](#access)
     - [Give admin access](#give-admin-access)
     - [Allow root pod for service account](#allow-root-pod-for-service-account)
-    - [Change service account for running deploymentconfig](#change-service-account-for-running-deploymentconfig)
-    - [User manage all projects](#user-manage-all-projects)
-    - [Create user from scratch OCP3](#create-user-from-scratch-ocp3)
-    - [Removal for auth users to create projects](#removal-for-auth-users-to-create-projects)
-    - [List role bindings](#list-role-bindings)
-    - [Role applicability](#role-applicability)
-    - [OC default roles](#oc-default-roles)
-    - [Security Context Constraints (SCCs)](#security-context-constraints-sccs)
-    - [View user access](#view-user-access)
-    - [View "policys"/rolebindings](#view-%22policys%22rolebindings)
-  - [Applications](#applications)
-    - [Create app using cli multiple options](#create-app-using-cli-multiple-options)
-      - [Create app using standard repo with a bunch of variabels](#create-app-using-standard-repo-with-a-bunch-of-variabels)
-      - [To create an application based on an image from a private registry](#to-create-an-application-based-on-an-image-from-a-private-registry)
-      - [To create an application based on source code stored in a Git repository](#to-create-an-application-based-on-source-code-stored-in-a-git-repository)
-      - [To create an application based on source code stored in a Git repository and referring to an image stream](#to-create-an-application-based-on-source-code-stored-in-a-git-repository-and-referring-to-an-image-stream)
-    - [Delete app](#delete-app)
-    - [Scale application](#scale-application)
-    - [Autoscaling HorizontalPodAutoscaler (HPA)](#autoscaling-horizontalpodautoscaler-hpa)
-    - [Restart pod](#restart-pod)
-    - [Set nodeSelector](#set-nodeselector)
-    - [Set nodeSelector way 2](#set-nodeselector-way-2)
-    - [Cancel failed rollout](#cancel-failed-rollout)
-    - [Redeploy application](#redeploy-application)
-  - [Ansible](#ansible)
-    - [Install openshift ansible scripts](#install-openshift-ansible-scripts)
-    - [Ansible-playbook prerequisites](#ansible-playbook-prerequisites)
-    - [Ansible-playbook deploy_cluster](#ansible-playbook-deploycluster)
-    - [Verift the installation](#verift-the-installation)
-    - [Ansible playbook metrics](#ansible-playbook-metrics)
-    - [Ansinble uninstall metrics](#ansinble-uninstall-metrics)
-  - [Openshift-install](#openshift-install)
-    - [Install logs](#install-logs)
-  - [Network](#network)
-    - [Different routes](#different-routes)
-    - [Route/expose without any TLS](#routeexpose-without-any-tls)
-    - [Wildcard](#wildcard)
-    - [External route example](#external-route-example)
-      - [Create a private key using the openssl command](#create-a-private-key-using-the-openssl-command)
-      - [Create a certificate signing request (CSR) using the generated private key](#create-a-certificate-signing-request-csr-using-the-generated-private-key)
-      - [Generate a certificate using the key and CSR](#generate-a-certificate-using-the-key-and-csr)
-      - [create an edge-terminated route](#create-an-edge-terminated-route)
-    - [HA route metrics](#ha-route-metrics)
-      - [Get env in pod](#get-env-in-pod)
-      - [Grab the metric](#grab-the-metric)
-  - [Certificates docker](#certificates-docker)
-    - [registry requiere cert](#registry-requiere-cert)
-    - [docker sarch command](#docker-sarch-command)
-    - [docker load](#docker-load)
-  - [Diagnostics](#diagnostics)
-    - [RedHat debugging tool](#redhat-debugging-tool)
-    - [Grab events from cluster or ns](#grab-events-from-cluster-or-ns)
-    - [Systemctl](#systemctl)
-    - [oc adm diagnostics](#oc-adm-diagnostics)
-  - [Storage](#storage)
-    - [NFS for PV](#nfs-for-pv)
+      - [Bad way of doing it root access](#bad-way-of-doing-it-root-access)
+- [Is all pools okay?](#is-all-pools-okay)
+- [In my case it's in a degraded state.](#in-my-case-its-in-a-degraded-state)
+- [Look at the worker machineconfigpool, look under status and see what's wrong](#look-at-the-worker-machineconfigpool-look-under-status-and-see-whats-wrong)
+- [Look at the specific machineconfig that can't donsen't work.](#look-at-the-specific-machineconfig-that-cant-donsent-work)
+- [Find the pod that have the issue (in my case all of the workers so I start with one)](#find-the-pod-that-have-the-issue-in-my-case-all-of-the-workers-so-i-start-with-one)
+- [logs](#logs)
+    - [Example NFS PV](#example-nfs-pv)
+  - [Admin tasks](#admin-tasks)
+    - [Mantience of a node](#mantience-of-a-node)
+    - [Label nodes](#label-nodes)
+  - [Template](#template)
+    - [Add template](#add-template)
+    - [template to projects](#template-to-projects)
+    - [Template overwrite variables in project](#template-overwrite-variables-in-project)
+  - [Quoatas](#quoatas)
+    - [Quota using cli](#quota-using-cli)
+    - [Get quota](#get-quota)
+    - [Pod resource limitation](#pod-resource-limitation)
+  - [Limites](#limites)
+    - [Typical limits file](#typical-limits-file)
+    - [get limitrange](#get-limitrange)
+  - [ClusterResources](#clusterresources)
+    - [ClusterQuota on env label](#clusterquota-on-env-label)
+    - [ClusterQuota on user](#clusterquota-on-user)
+  - [Openshift upgrades](#openshift-upgrades)
+    - [Hooks](#hooks)
+    - [Verification](#verification)
+      - [Verify the nodes](#verify-the-nodes)
+      - [Verify router/images](#verify-routerimages)
+    - [Run diagnostics](#run-diagnostics)
+  - [Debug](#debug)
+    - [View node load](#view-node-load)
+    - [View all pods resource usage](#view-all-pods-resource-usage)
+    - [Ansible health check](#ansible-health-check)
+    - [Debug OCP4 nodes](#debug-ocp4-nodes)
+  - [Jenkins pipeline](#jenkins-pipeline)
+    - [Setup jenkins master](#setup-jenkins-master)
+    - [Jenkins service account access](#jenkins-service-account-access)
+    - [Jenkins service account pull image](#jenkins-service-account-pull-image)
+  - [OSCP4 specific](#oscp4-specific)
+    - [Machine operator](#machine-operator)
+    - [Machinesets](#machinesets)
+    - [Follow machine operator log](#follow-machine-operator-log)
+    - [Scale number of nodes in a machineset](#scale-number-of-nodes-in-a-machineset)
+    - [network operator](#network-operator)
+    - [SDN opeartor](#sdn-opeartor)
+    - [Create user httpasswd OCP4](#create-user-httpasswd-ocp4)
+  - [Operators](#operators)
+  - [Get clusteroperators](#get-clusteroperators)
+  - [Openshift 4 course overview](#openshift-4-course-overview)
+    - [General notes](#general-notes)
+    - [Autolabel nodes](#autolabel-nodes)
+    - [Set nodeselector on crd](#set-nodeselector-on-crd)
+    - [Cluster version operator](#cluster-version-operator)
+    - [Cluster Network Operator CNO](#cluster-network-operator-cno)
+  - [openshift-marketplace](#openshift-marketplace)
+    - [Avliable operators in marketplace](#avliable-operators-in-marketplace)
+    - [Describe operator](#describe-operator)
+    - [Create subscription](#create-subscription)
+    - [Create nfd](#create-nfd)
     - [Cluster Service Versions](#cluster-service-versions)
     - [Operator provides](#operator-provides)
     - [View opeartor dependencies](#view-opeartor-dependencies)
+  - [Machine config](#machine-config)
+    - [disable machineconfigpool](#disable-machineconfigpool)
+  - [Day2 stuff](#day2-stuff)
+    - [Backup](#backup)
+      - [Velero](#velero)
+  - [Image pruning](#image-pruning)
+    - [View iamge pruning status](#view-iamge-pruning-status)
+  - [Upgrade paths](#upgrade-paths)
+    - [Install upgrade path tools](#install-upgrade-path-tools)
+    - [Example upgrade path](#example-upgrade-path)
+    - [OCP upgrade errors](#ocp-upgrade-errors)
+      - [Debuging upgrade](#debuging-upgrade)
+  - [Podman](#podman)
+    - [Podman clean error refreshing container](#podman-clean-error-refreshing-container)
 
 ## OC CLI
 
@@ -309,9 +328,21 @@ oc adm policy add-cluster-role-to-user cluster-admin admin
 
 ### Allow root pod for service account
 
+```shell
 oc create serviceaccount useroot
+oc create role useroot --verb=use --resource=securitycontextconstraints --resource-name=anyuid
+oc create rolebinding useroot --role=useroot --serviceaccount=<namespace>:<sa>
+```
 
-oc adm policy add-scc-to-user anyuid -z useroot
+#### Bad way of doing it root access
+
+Earlier I have been thought that this was a okay way to assign an scc to a user.
+There is a bug when upgrading from 4.3.8 -> 4.3.10 or something like that. That looks to see if the scc is completley untouched.
+Even if you just assign a user to a scc you will still "modify" it.
+
+Don't do it, I just have this to remember how I did it and to share how not to do it now!
+
+```oc adm policy add-scc-to-user anyuid -z useroot```
 
 ### Change service account for running deploymentconfig
 
@@ -387,6 +418,32 @@ oc get clusterrolebinding.rbac
 This is due to rbac came after RHOCP (RedHat Openshift Container Platform)...
 
 oc describe clusterrolebinding.rbac self-provisioner
+
+### Delete kubeadmin
+
+NOTE: *Don't* do this before you have created some other admin user.
+
+oc delete secret kubeadmin -n kube-system
+
+It's not possible to create the secret again to create a new password.
+
+### rotate service account
+
+To rotate service account token, delete token secret:
+
+$ oc delete secret SECRET -n NAMESPACE
+
+Deleted token immediately disabled in cluster API
+
+Pods using deleted secret need to be restarted
+
+External services need updated credentials
+
+### Check SA monitor agent can list pods
+
+oc get pods -n monitored-project \
+    --as=system:serviceaccount:monitor:monitor-agent \
+    --as-group=system:serviceaccounts:monitor
 
 ## Applications
 
@@ -476,6 +533,21 @@ oc rollout cancel dc/<name>
 
 oc rollout latest dc/<name>
 
+### Get image name from pod
+
+oc get pod cakephp-ex-1-2vdtk -o jsonpath='{.spec.containers[*].image}'
+
+or
+
+oc get pod cakephp-ex-1-2vdtk -o jsonpath='{..image}'
+
+Checkout: https://kubernetes.io/docs/tasks/access-application-cluster/list-all-running-container-images/
+
+### Get all none quay image in OCP cluster
+
+ kubectl get pods --all-namespaces -o=jsonpath='{range .items[*]}{"\n"}{.metadata.name}{":\t"}{range .spec.containers[*]}{.image}{", "}{end}{end}' |\
+sort |grep -v quay
+
 ## Ansible
 
 ### Install openshift ansible scripts
@@ -545,6 +617,14 @@ Here is a link for [aws](https://docs.openshift.com/container-platform/4.2/insta
 ### Install logs
 
 <installation_folder>/.openshift_install.log
+
+### Get pending node requests
+
+oc get csr
+
+### Approve all pending nodes
+
+oc get csr -ojson | jq -r '.items[] | select(.status == {} ) | .metadata.name' | xargs oc adm certificate approve
 
 ## Network
 
@@ -667,6 +747,51 @@ journalctl -u atomic-openshift-master-api.service
 Good to use before oc upgrades
 
 oc adm diagnostics
+
+### cloud provider config
+
+Due to reasons your cloud provider sa can be changed.
+To see what is currently is look at:
+
+oc get controllerconfig machine-config-controller -o yaml
+
+### Insights verification
+
+Your customer might ask does what data does insight gather from us?
+
+INSIGHTS_OPERATOR_POD=$(oc get pods --namespace=openshift-insights -o custom-columns=:metadata.name --no-headers  --field-selector=status.phase=Running)
+oc cp openshift-insights/$INSIGHTS_OPERATOR_POD:/var/lib/insights-operator ./insights-data
+
+### Debbuging machineconfig
+
+In my case my worker nodes don't get the latest cri-o image installed on it after an upgrade.
+So time for some debugging:
+
+```shell
+# Is all pools okay?
+oc get machineconfigpool
+# In my case it's in a degraded state.
+
+# Look at the worker machineconfigpool, look under status and see what's wrong
+oc get machineconfigpool worker -o yaml
+
+# Look at the specific machineconfig that can't donsen't work.
+oc get machineconfig rendered-worker-4ec48b44c2322a10cbe7cbd6ee819203 -oyaml
+
+oc project openshift-machine-config-operator
+
+# Find the pod that have the issue (in my case all of the workers so I start with one)
+oc get pods -o wide
+
+# logs
+oc logs machine-config-daemon-7zb6v -c machine-config-daemon
+```
+
+I got error:
+
+E0507 14:02:38.944558 1033717 writer.go:135] Marking Degraded due to: unexpected on-disk state validating against rendered-worker-4ec48b44c2322a10cbe7cbd6ee819203
+
+The following article seems to solve my [issue](https://access.redhat.com/solutions/4264181)
 
 ## Storage
 
@@ -1072,3 +1197,91 @@ oc get csv servicemeshoperator.v1.0.2 -o json | jq '.spec.customresourcedefiniti
 ### View opeartor dependencies
 
 oc get csv servicemeshoperator.v1.0.2 -o json | jq '.spec.customresourcedefinitions.required[].kind'
+
+## Machine config
+
+https://openshift.tips/machine-config/
+
+### disable machineconfigpool
+
+For every machineconfig you update all the nodes will be restarted.
+To hinder this perfrom:
+
+oc patch --type=merge --patch='{"spec":{"paused":true}}' machineconfigpool/master
+
+## Day2 stuff
+
+### Backup
+
+Who needs it? No one ever runs storage stuff and none gitops in k8s right? :)
+
+A easy way to setup backups of etcd.
+
+https://github.com/sushilsuresh/ocp4-ansible-roles/tree/master/roles/etcd-backup
+
+Sadly this isn't enough if you wan't to backup the data in your pvc.
+In enters velero
+
+#### Velero
+
+Have written [velero.md](velero.md) on how to use it.
+
+## Image pruning
+
+To make sure that you image registry don't become ful you should
+delete some old images that is saved in the internal [registry.](https://docs.openshift.com/container-platform/4.4/applications/pruning-objects.html#pruning-images_pruning-objects)
+
+### View iamge pruning status
+
+oc get imagepruner cluster -o yaml
+
+The automatic feature was enabled in OCP 4.4
+
+## Upgrade paths
+
+Due to some bugs in OCP 4.2 you coulden't always go onwards from OCP 4.2 to next minor release.
+The patch/upgrade path is described [here](https://access.redhat.com/solutions/4583231)
+
+There is a simple graphical tool that you can use but you need to download a few tools.
+
+### Install upgrade path tools
+
+```shell
+sudo dnf install graphviz
+wget https://raw.githubusercontent.com/openshift/cincinnati/master/hack/graph.sh
+chmod 755 graph.sh
+```
+
+### Example upgrade path
+
+curl -sH 'Accept:application/json' 'https://api.openshift.com/api/upgrades_info/v1/graph?channel=fast-4.2&arch=amd64' | ./graph.sh | dot -Tsvg > graph.svg
+
+### OCP upgrade errors
+
+When using the UI or cli upgrading the OCP 4.3 up until 4.3.13 you can get funny errors about scc issues.
+But overall check the clusterversion and you will see the errors message.
+
+#### Debuging upgrade
+
+```oc get clusterversion -o yaml```
+
+In there I found the following reason:
+
+message: 'Precondition "ClusterVersionUpgradeable" failed because of "DefaultSecurityContextConstraints_Mutated":
+Cluster operator kube-apiserver cannot be upgraded: DefaultSecurityContextConstraintsUpgradeable:
+Default SecurityContextConstraints object(s) have mutated [anyuid]'
+reason: UpgradePreconditionCheckFailed
+status: "True"
+type: Failing
+
+So how do I know what have changed in anyuid from the [default?](https://access.redhat.com/solutions/4972291)
+
+## Podman
+
+This dosen't have anything to do with OCP but this is currently my favorit file to write nice to have stuff.
+
+### Podman clean error refreshing container
+
+ERRO[0000] Error refreshing container f7db993e6fa423475035277f88cc09f0154dee13b257914719c18c8e62639002: error acquiring lock 0 for container f7db993e6fa423475035277f88cc09f0154dee13b257914719c18c8e62639002: file exists
+
+rm -rf ~/.local/share/containers/storage/overlay-containers/*/userdata/*

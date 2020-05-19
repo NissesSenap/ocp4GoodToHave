@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: grafana-operator
+  annotations:
+    openshift.io/display-name: "Grafana Datasource"
+    description: >-
+      Installs a datasource to call to central thanos querier in openshift missions
+    tags: "monitoring"
+    iconClass: "fa fa-exchange"
+message: "Data source being created ${PROJECT_NAME}"
+parameters:
+- description: The name of the project the operator will be installed to
+  displayName: Name of project
+  name: PROJECT_NAME
+  value: debezium-monitoring
+  required: true
+- description: The name of the datasource resource.  This will be used to name the file on pod's disk and is necessary to match up with configmap
+  displayName: Datasource Custom Resource Name
+  name: DATASOURCE_CUSTOM_RESOURCE_NAME
+  value: openshift-monitoring-datasource
+  required: true
+- description: The name of the created datasource
+  displayName: Datasource Name
+  name: DATASOURCE_NAME
+  value: prometheus
+  required: true
+- description: The Token (for the sa with cluster-metrics-view privilege) that should be publish on the data source
+  displayName: (Bearer) Token
+  name: TOKEN
+  required: true
+objects:
+  - apiVersion: integreatly.org/v1alpha1
+    kind: GrafanaDataSource
+    metadata:
+      name: ${DATASOURCE_CUSTOM_RESOURCE_NAME}
+      namespace: ${PROJECT_NAME}
+    spec:
+      datasources:
+        - access: proxy
+          name: ${DATASOURCE_NAME}
+          type: prometheus
+          url: 'https://thanos-querier.openshift-monitoring.svc.cluster.local:9091'
+          basicAuth: false
+          withCredentials: false
+          isDefault: true
+          jsonData:
+            timeInterval: 5s
+            tlsSkipVerify: true
+            httpHeaderName1: "Authorization"
+          secureJsonData:
+            httpHeaderValue1: "Bearer ${TOKEN}"
+          editable: true
+          # customQueryParameters:
+          # - "namespace=openshift-monitoring"
+      name: openshift-metrics-datasources.yaml
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: grafana-datasources
+      namespace: ${PROJECT_NAME}
+    data:
+      ${PROJECT_NAME}_${DATASOURCE_CUSTOM_RESOURCE_NAME}.yaml: |
+        apiVersion: 1
+        datasources:
+        - access: proxy
+          editable: true
+          secureJsonData:
+            httpHeaderValue1: >-
+              Bearer
+              ${TOKEN}
+          name: ${DATASOURCE_NAME}
+          url: 'https://thanos-querier.openshift-monitoring.svc.cluster.local:9091'
+          jsonData:
+            httpHeaderName1: Authorization
+            timeInterval: 5s
+            tlsSkipVerify: true
+          withCredentials: false
+          basicAuth: false
+          isDefault: true
+          type: prometheus
+     

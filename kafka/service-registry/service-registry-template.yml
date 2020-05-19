@@ -1,0 +1,180 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: service-registry
+message: |-
+  Congratulations on deploying Service Registry into OpenShift!
+  
+  All components have been deployed and configured.
+
+objects:
+# Image Streams for the components
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: registry
+  spec:
+    tags:
+      - name: latest
+        from:
+          kind: DockerImage
+          name: registry.redhat.io/fuse7-tech-preview/fuse-service-registry-rhel7:1.5-9
+        importPolicy:
+          insecure: true
+        referencePolicy:
+          type: Local
+# Services for the components
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: service-registry
+      template: service-registry
+    name: service-registry
+  spec:
+    selector:
+      app: service-registry
+    ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+      nodePort: 32222
+    type: NodePort
+    sessionAffinity: None
+  status:
+    loadBalancer: {}
+# Registry Deployment Configuration
+# #################################
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: service-registry
+      template: service-registry
+    name: service-registry
+  spec:
+    replicas: 1
+    selector:
+      app: service-registry
+      deploymentconfig: service-registry
+    strategy:
+      type: Recreate
+      recreateParams:
+        timeoutSeconds: 600
+      resources: {}
+      activeDeadlineSeconds: 21600
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: service-registry
+          deploymentconfig: service-registry
+          template: service-registry
+      spec:
+        replicas: 1
+        containers:
+        - image: registry:latest
+          imagePullPolicy: Always
+          name: service-registry
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          env:
+          - name: QUARKUS_PROFILE
+            value: prod
+          - name: KAFKA_BOOTSTRAP_SERVERS
+            value: ${KAFKA_BOOTSTRAP_SERVERS}
+          resources:
+            limits:
+              cpu: ${REGISTRY_CPU_LIMIT}
+              memory: ${REGISTRY_MEM_LIMIT}
+            requests:
+              cpu: ${REGISTRY_CPU_REQUEST}
+              memory: ${REGISTRY_MEM_REQUEST}
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - service-registry
+        from:
+          kind: ImageStreamTag
+          name: 'registry:latest'
+  status: {}
+# The Route(s)
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: service-registry
+    creationTimestamp: null
+    labels:
+      app: service-registry
+      template: service-registry
+  spec:
+    host: ${REGISTRY_ROUTE}
+    to:
+      kind: Service
+      name: service-registry
+      weight: 100
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+    wildcardPolicy: None
+# Template Parameters
+parameters:
+- name: REGISTRY_ROUTE
+  displayName: Registry Route Name
+  description: The route name to use for the Registry api.
+  value: registry.OPENSHIFT_APP_DOMAIN.com
+  required: true
+- name: REGISTRY_MEM_LIMIT
+  displayName: Registry Max Memory Limit
+  description: Registry Pods Max Memory Limit
+  value: 1300Mi
+  required: true
+- name: REGISTRY_MEM_REQUEST
+  displayName: Registry Memory Requests
+  description: Registry Pods Memory Requests
+  value: 600Mi
+  required: true
+- name: REGISTRY_CPU_LIMIT
+  displayName: Registry Max CPU Limit
+  description: Registry Pods Max CPU Limit
+  value: '1'
+  required: true
+- name: REGISTRY_CPU_REQUEST
+  displayName: Registry CPU Requests
+  description: Registry Pods CPU Requests
+  value: 100m
+  required: true
+- name: KAFKA_BOOTSTRAP_SERVERS
+  displayName: Kafka Bootstrap Servers
+  description: Kafka Bootstrap Servers
+  required: true

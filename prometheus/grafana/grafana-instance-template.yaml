@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: grafana-instance
+  annotations:
+    openshift.io/display-name: "Custom Grafana Instance"
+    description: >-
+      This template installs an instance of Grafana
+    tags: "monitoring"
+    iconClass: "fa fa-exchange"
+message: "Grafana instance is being installed to project ${PROJECT_NAME}"
+parameters:
+- description: The name of the project the operator will be installed to
+  displayName: Name of project
+  name: PROJECT_NAME
+  value: debezium-monitoring
+  required: true
+- description: The name of the admin user
+  displayName: Admin username
+  name: ADMIN_USER
+  value: "admin"
+  required: true
+- description: The password for the admin user
+  displayName: Admin password
+  name: ADMIN_PASSWORD
+  value: "openshift"
+  required: true
+- description: The name of grafana instance
+  displayName: Grafana instance name
+  name: GRAFANA_INSTANCE_NAME
+  value: "grafana-debezium"
+  required: true
+objects:
+- apiVersion: integreatly.org/v1alpha1
+  kind: Grafana
+  metadata:
+    name: ${{GRAFANA_INSTANCE_NAME}}
+    namespace: ${{PROJECT_NAME}}
+  spec:
+    ingress:
+      enabled: true
+    config:
+      auth:
+        disable_signout_menu: true
+      auth.anonymous:
+        enabled: true
+      log:
+        level: warn
+        mode: console
+      security:
+        admin_password: ${{ADMIN_PASSWORD}}
+        admin_user: ${{ADMIN_USER}}
+    dashboardLabelSelector:
+      - matchExpressions:
+          - key: app
+            operator: In
+            values:
+              - grafana
+ 
