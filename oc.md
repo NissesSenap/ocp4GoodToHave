@@ -24,6 +24,7 @@
     - [Login oc internal container repo](#login-oc-internal-container-repo)
     - [podman login file](#podman-login-file)
     - [View OCP root credentials](#view-ocp-root-credentials)
+    - [simple go-template](#simple-go-template)
   - [Namespace/project](#namespaceproject)
     - [List all the ns](#list-all-the-ns)
     - [Switch ns](#switch-ns)
@@ -35,12 +36,74 @@
     - [Give admin access](#give-admin-access)
     - [Allow root pod for service account](#allow-root-pod-for-service-account)
       - [Bad way of doing it root access](#bad-way-of-doing-it-root-access)
-- [Is all pools okay?](#is-all-pools-okay)
-- [In my case it's in a degraded state.](#in-my-case-its-in-a-degraded-state)
-- [Look at the worker machineconfigpool, look under status and see what's wrong](#look-at-the-worker-machineconfigpool-look-under-status-and-see-whats-wrong)
-- [Look at the specific machineconfig that can't donsen't work.](#look-at-the-specific-machineconfig-that-cant-donsent-work)
-- [Find the pod that have the issue (in my case all of the workers so I start with one)](#find-the-pod-that-have-the-issue-in-my-case-all-of-the-workers-so-i-start-with-one)
-- [logs](#logs)
+    - [Change service account for running deploymentconfig](#change-service-account-for-running-deploymentconfig)
+    - [User manage all projects](#user-manage-all-projects)
+    - [Create user from scratch OCP3](#create-user-from-scratch-ocp3)
+    - [Removal for auth users to create projects](#removal-for-auth-users-to-create-projects)
+    - [List role bindings](#list-role-bindings)
+    - [Role applicability](#role-applicability)
+    - [OC default roles](#oc-default-roles)
+    - [Security Context Constraints (SCCs)](#security-context-constraints-sccs)
+    - [View user access](#view-user-access)
+    - [View "policys"/rolebindings](#view-policysrolebindings)
+    - [Delete kubeadmin](#delete-kubeadmin)
+    - [rotate service account](#rotate-service-account)
+    - [Check SA monitor agent can list pods](#check-sa-monitor-agent-can-list-pods)
+  - [Applications](#applications)
+    - [Create app using cli multiple options](#create-app-using-cli-multiple-options)
+      - [Create app using standard repo with a bunch of variabels](#create-app-using-standard-repo-with-a-bunch-of-variabels)
+      - [To create an application based on an image from a private registry](#to-create-an-application-based-on-an-image-from-a-private-registry)
+      - [To create an application based on source code stored in a Git repository](#to-create-an-application-based-on-source-code-stored-in-a-git-repository)
+      - [To create an application based on source code stored in a Git repository and referring to an image stream](#to-create-an-application-based-on-source-code-stored-in-a-git-repository-and-referring-to-an-image-stream)
+    - [Delete app](#delete-app)
+    - [Scale application](#scale-application)
+    - [Autoscaling HorizontalPodAutoscaler (HPA)](#autoscaling-horizontalpodautoscaler-hpa)
+    - [Restart pod](#restart-pod)
+    - [Set nodeSelector](#set-nodeselector)
+    - [Set nodeSelector way 2](#set-nodeselector-way-2)
+    - [Cancel failed rollout](#cancel-failed-rollout)
+    - [Redeploy application](#redeploy-application)
+    - [Get image name from pod](#get-image-name-from-pod)
+    - [Get all none quay image in OCP cluster](#get-all-none-quay-image-in-ocp-cluster)
+  - [Ansible](#ansible)
+    - [Install openshift ansible scripts](#install-openshift-ansible-scripts)
+    - [Ansible-playbook prerequisites](#ansible-playbook-prerequisites)
+    - [Ansible-playbook deploy_cluster](#ansible-playbook-deploy_cluster)
+    - [Verift the installation](#verift-the-installation)
+    - [Ansible playbook metrics](#ansible-playbook-metrics)
+    - [Ansinble uninstall metrics](#ansinble-uninstall-metrics)
+  - [Openshift-install](#openshift-install)
+    - [Install logs](#install-logs)
+    - [Get pending node requests](#get-pending-node-requests)
+    - [Approve all pending nodes](#approve-all-pending-nodes)
+  - [Network](#network)
+    - [Different routes](#different-routes)
+    - [Route/expose without any TLS](#routeexpose-without-any-tls)
+    - [Wildcard](#wildcard)
+    - [External route example](#external-route-example)
+      - [Create a private key using the openssl command](#create-a-private-key-using-the-openssl-command)
+      - [Create a certificate signing request (CSR) using the generated private key](#create-a-certificate-signing-request-csr-using-the-generated-private-key)
+      - [Generate a certificate using the key and CSR](#generate-a-certificate-using-the-key-and-csr)
+      - [create an edge-terminated route](#create-an-edge-terminated-route)
+    - [HA route metrics](#ha-route-metrics)
+      - [Get env in pod](#get-env-in-pod)
+      - [Grab the metric](#grab-the-metric)
+  - [Certificates docker](#certificates-docker)
+    - [registry requiere cert](#registry-requiere-cert)
+    - [docker sarch command](#docker-sarch-command)
+    - [docker load](#docker-load)
+  - [Diagnostics](#diagnostics)
+    - [Finalizers errors](#finalizers-errors)
+    - [RedHat debugging tool](#redhat-debugging-tool)
+    - [Grab events from cluster or ns](#grab-events-from-cluster-or-ns)
+    - [Systemctl](#systemctl)
+    - [oc adm diagnostics](#oc-adm-diagnostics)
+    - [cloud provider config](#cloud-provider-config)
+    - [Insights verification](#insights-verification)
+    - [Debbuging machineconfig](#debbuging-machineconfig)
+    - [kubernetes api feature gates](#kubernetes-api-feature-gates)
+  - [Storage](#storage)
+    - [NFS for PV](#nfs-for-pv)
     - [Example NFS PV](#example-nfs-pv)
   - [Admin tasks](#admin-tasks)
     - [Mantience of a node](#mantience-of-a-node)
@@ -70,6 +133,11 @@
     - [View all pods resource usage](#view-all-pods-resource-usage)
     - [Ansible health check](#ansible-health-check)
     - [Debug OCP4 nodes](#debug-ocp4-nodes)
+  - [installation debugging](#installation-debugging)
+    - [Verify dns srv etcd](#verify-dns-srv-etcd)
+    - [Check logs on nodes](#check-logs-on-nodes)
+    - [Check running containers on node](#check-running-containers-on-node)
+    - [etcd storage verification](#etcd-storage-verification)
   - [Jenkins pipeline](#jenkins-pipeline)
     - [Setup jenkins master](#setup-jenkins-master)
     - [Jenkins service account access](#jenkins-service-account-access)
@@ -126,6 +194,21 @@ oc login https://master.lab.example.com -u developer -p redhat
 ### export output as template (openshift templates)
 
 oc export svc,dc docker-registry --as-template=docker-registry
+
+This feature have been depricated due to reasons.
+If you want to get rid of similar metadata and status like the export command did you can do the following:
+
+```bash
+cat filter.jq
+del(.. | select(. == "" or . == null or . == "None")) |
+walk(if type == "object" then del(.status,.annotations,.creationTimestamp,.generation,.selfLink,.uid,.resourceVersion) else . end) |
+del(.. | select(. == {}))
+
+# Run the above parsing on your yaml output. Notice the yq command that is a wrapper on jq.
+kubectl get -o=yaml | yq --yaml-output "$(cat filter.jq)"
+```
+
+For more info see [PR](https://github.com/kubernetes/kubernetes/pull/73787)
 
 OCP 4
 This is also depricated, don't know how to do it in the future
@@ -268,6 +351,13 @@ Like AWS, Azure, vspehere, openstack etc.
 oc get secrets -n kube-system | grep cred
 
 You will see aws-creds if you run aws.
+
+### simple go-template
+
+Sometimes we are in environments that dosen't have jq by default... windows...
+Then another good option is go-template.
+
+oc get secret prod-db-secret -o go-template --template='{{.data.username}}'
 
 ## Namespace/project
 
@@ -719,6 +809,16 @@ https://serverfault.com/questions/757210/no-command-specified-from-re-imported-d
 
 ## Diagnostics
 
+### Finalizers errors
+
+If a k8s objects is stuck deleting the most common reason is due to finalizers.
+Andrew Block have written a great explination on how to [debug it](https://www.openshift.com/blog/the-hidden-dangers-of-terminating-namespaces)
+
+Bellow you can find a simple patch that will remove finalizers from a secret.
+don't use unless you know what you are doing.
+
+oc patch secret test-secret -n finalizer-example -p '{"metadata":{"finalizers":[]}}' --type=merge
+
 ### RedHat debugging tool
 
 Gathers logs from host and docker
@@ -792,6 +892,12 @@ I got error:
 E0507 14:02:38.944558 1033717 writer.go:135] Marking Degraded due to: unexpected on-disk state validating against rendered-worker-4ec48b44c2322a10cbe7cbd6ee819203
 
 The following article seems to solve my [issue](https://access.redhat.com/solutions/4264181)
+
+### kubernetes api feature gates
+
+To view the config of the kubernetes api server, you will be able to features like feature gates.
+
+oc get kubeapiserver cluster -o yaml
 
 ## Storage
 
@@ -994,6 +1100,31 @@ In OCP 4 this should be defined in the tuned crd:
 oc get tuned -n openshift-cluster-node-tuning-operator
 
 for i in $(oc get nodes --no-headers -o=custom-columns=NAME:.metadata.name); do echo $i; oc debug node/$i -- chroot /host sysctl net.ipv4.ip_local_port_range; done
+
+## installation debugging
+
+### Verify dns srv etcd
+
+dig srv _etcd-server-ssl._tcp.<your-domain>
+
+### Check logs on nodes
+
+Debug
+
+journalctl -u release-image.service
+
+journalctl -b -f -u bootkube.service
+
+https://docs.openshift.com/container-platform/4.3/installing/installing-gather-logs.html
+
+### Check running containers on node
+
+sudo crictl ps
+
+### etcd storage verification
+
+Is your storage is Fast Enough for Etcd?
+Here you can find a ibm blog about how to test [it](https://www.ibm.com/cloud/blog/using-fio-to-tell-whether-your-storage-is-fast-enough-for-etcd)
 
 ## Jenkins pipeline
 
