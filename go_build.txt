@@ -1,0 +1,4 @@
+#!/bin/bash
+cd src/userM
+go mod download /opt/local/go/src/go-url/build/cache -json
+go build -ldflags '-extldflags "-static"' -o userM_output

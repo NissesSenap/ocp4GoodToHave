@@ -133,6 +133,10 @@
     - [View all pods resource usage](#view-all-pods-resource-usage)
     - [Ansible health check](#ansible-health-check)
     - [Debug OCP4 nodes](#debug-ocp4-nodes)
+    - [ca cert debubging](#ca-cert-debubging)
+      - [Verify ok certificates](#verify-ok-certificates)
+      - [curl with cert](#curl-with-cert)
+      - [openssl connect](#openssl-connect)
   - [installation debugging](#installation-debugging)
     - [Verify dns srv etcd](#verify-dns-srv-etcd)
     - [Check logs on nodes](#check-logs-on-nodes)
@@ -1100,6 +1104,40 @@ In OCP 4 this should be defined in the tuned crd:
 oc get tuned -n openshift-cluster-node-tuning-operator
 
 for i in $(oc get nodes --no-headers -o=custom-columns=NAME:.metadata.name); do echo $i; oc debug node/$i -- chroot /host sysctl net.ipv4.ip_local_port_range; done
+
+### ca cert debubging
+
+This is not my strong suite and but during a redhat case I picked up a few things.
+The certificates are X509 pem format and they don't have any encryption at all.
+
+#### Verify ok certificates
+
+Using the CA file and see that the tls.crt is okay.
+
+```bash
+openssl verify -CAfile ca-bundle.crt tls.crt
+```
+
+#### curl with cert
+
+Of course it won't be able to create a https connection to a kafka endpoint but it's a simple way to send traffic.
+
+curl -vvv https://broker1-kafka1.domain:9093/ --cacert ca-bundle.crt --key tls.key --cert tls.crt
+
+#### openssl connect
+
+```bash
+# How I created the secrets
+# oc create secret key dosen't support a ca-bundle.crt file but only tls.crt & tls.key
+oc create secret generic secret-generic3 --from-file=tls.key --from-file=tls.crt --from-file=ca-bundle.crt --from-file=ca-intermediate.crt
+
+oc rsh <fluentd pod>
+cd /var/run/ocp-collector/secrets/<path to secret>
+
+# Use openssl to connect to the endpoint, in this case kafka.
+sh-4.4# echo Q | openssl s_client -showcerts -connect broker1-kafka1.domain:9093 -servername broker1-kafka1.domain -key tls.key 
+-cert tls.crt -CAfile ca-bundle.crt
+```
 
 ## installation debugging
 

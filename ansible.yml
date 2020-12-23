@@ -1,0 +1,11 @@
+# Vim settings at RedHat for yaml
+# autocmd FileType yaml setlocal ai ts=2 sw=2 et
+---
+
+- name: fuu
+  hosts: localhost
+
+  tasks:
+  - name: ping
+    ping:
+      data: pong
