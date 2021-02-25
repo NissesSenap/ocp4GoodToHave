@@ -1116,6 +1116,7 @@ Using the CA file and see that the tls.crt is okay.
 
 ```bash
 openssl verify -CAfile ca-bundle.crt tls.crt
+openssl x509 -in broken-external.crt -text
 ```
 
 #### curl with cert
@@ -1139,6 +1140,9 @@ sh-4.4# echo Q | openssl s_client -showcerts -connect broker1-kafka1.domain:9093
 -cert tls.crt -CAfile ca-bundle.crt
 ```
 
+Or a simple openssl without certs
+
+openssl s_client -connect ns1.domain:443
 ## installation debugging
 
 ### Verify dns srv etcd
@@ -1163,6 +1167,11 @@ sudo crictl ps
 
 Is your storage is Fast Enough for Etcd?
 Here you can find a ibm blog about how to test [it](https://www.ibm.com/cloud/blog/using-fio-to-tell-whether-your-storage-is-fast-enough-for-etcd)
+
+Or look at this redhat [doc](https://access.redhat.com/solutions/4885641)
+From a master:
+
+sudo podman run --volume /var/lib/etcd:/var/lib/etcd:Z quay.io/openshift-scale/etcd-perf
 
 ## Jenkins pipeline
 
@@ -1423,7 +1432,7 @@ chmod 755 graph.sh
 
 ### Example upgrade path
 
-curl -sH 'Accept:application/json' 'https://api.openshift.com/api/upgrades_info/v1/graph?channel=fast-4.2&arch=amd64' | ./graph.sh | dot -Tsvg > graph.svg
+curl -sH 'Accept:application/json' 'https://api.openshift.com/api/upgrades_info/v1/graph?channel=stable-4.4&arch=amd64' | ./graph.sh | dot -Tsvg > graph.svg
 
 ### OCP upgrade errors
 
