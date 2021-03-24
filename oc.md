@@ -129,6 +129,7 @@
       - [Verify router/images](#verify-routerimages)
     - [Run diagnostics](#run-diagnostics)
   - [Debug](#debug)
+    - [view all roles for a user](#view-all-roles-for-a-user)
     - [View node load](#view-node-load)
     - [View all pods resource usage](#view-all-pods-resource-usage)
     - [Ansible health check](#ansible-health-check)
@@ -381,7 +382,7 @@ Projects can have a separate name, display name, and description:
 
     The optional display name is how the project is displayed in the web console (defaults to name).
 
-    The optional description can be a more detailed description of the project and is also visible in the web console. 
+    The optional description can be a more detailed description of the project and is also visible in the web console.
 
 The following components apply to projects:
 
@@ -389,7 +390,7 @@ The following components apply to projects:
 
     Policies : Rules that determine which actions users can or cannot perform on objects.
 
-    Constraints : Quotas for each kind of object that can be limited. 
+    Constraints : Quotas for each kind of object that can be limited.
 
 ### Openshift 3.11 new-project
 
@@ -473,24 +474,24 @@ oc describe policyBindings :default
 
 ### Role applicability
 
-|Command                                             |Description                                                |
-|-----------------------------------------------------|----------------------------------------------------------|
-|oc adm policy who-can verb resource                 |Indicates which users can perform an action on a resource. |
-|oc adm policy add-role-to-user role username        |Binds a given role to specified users.                     |
-|oc adm policy remove-role-from-user role username   |Removes a given role from specified users.                 |
-|oc adm policy remove-user username                  |Removes specified users and all of their roles.            |
-|oc adm policy add-role-to-group role groupname      |Binds a given role to specified groups.                    |
-|oc adm policy remove-role-from-group role groupname |Removes a given role from specified groups.                |
-|oc adm policy remove-group groupname                |Removes specified groups and all of their roles.           |
+| Command                                             | Description                                                |
+| --------------------------------------------------- | ---------------------------------------------------------- |
+| oc adm policy who-can verb resource                 | Indicates which users can perform an action on a resource. |
+| oc adm policy add-role-to-user role username        | Binds a given role to specified users.                     |
+| oc adm policy remove-role-from-user role username   | Removes a given role from specified users.                 |
+| oc adm policy remove-user username                  | Removes specified users and all of their roles.            |
+| oc adm policy add-role-to-group role groupname      | Binds a given role to specified groups.                    |
+| oc adm policy remove-role-from-group role groupname | Removes a given role from specified groups.                |
+| oc adm policy remove-group groupname                | Removes specified groups and all of their roles.           |
 
 ### OC default roles
 
-|Default Roles | Description |
-|-----------------|------------------------------------------------------------------------------------------------------|
-|edit             |Users in the role can create, change and delete common application resources from the project, such as services and deployment configurations. But cannot act on management resources such as limit ranges and quotas, and cannot manage access permissions to the project.            |
-|basic-user       |Users in the role have read access to the project.                                                    |
-|self-provisioner |Users in the role can create new projects. This is a cluster role, not a project role.                |
-|admin |Users in the role can manage all resources in a project, including granting access to other users to the project.|
+| Default Roles    | Description                                                                                                                                                                                                                                                                 |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| edit             | Users in the role can create, change and delete common application resources from the project, such as services and deployment configurations. But cannot act on management resources such as limit ranges and quotas, and cannot manage access permissions to the project. |
+| basic-user       | Users in the role have read access to the project.                                                                                                                                                                                                                          |
+| self-provisioner | Users in the role can create new projects. This is a cluster role, not a project role.                                                                                                                                                                                      |
+| admin            | Users in the role can manage all resources in a project, including granting access to other users to the project.                                                                                                                                                           |
 
 ### Security Context Constraints (SCCs)
 
@@ -726,7 +727,7 @@ oc get csr -ojson | jq -r '.items[] | select(.status == {} ) | .metadata.name' |
 
 Edge Termination
 
-    With edge termination, TLS termination occurs at the router, before the traffic gets routed to the pods. TLS certificates are served by the router, so they must be configured into the route, otherwise the router’s default certificate is used for TLS termination. Because TLS is terminated at the router, connections from the router to the endpoints over the internal network are not encrypted. 
+    With edge termination, TLS termination occurs at the router, before the traffic gets routed to the pods. TLS certificates are served by the router, so they must be configured into the route, otherwise the router’s default certificate is used for TLS termination. Because TLS is terminated at the router, connections from the router to the endpoints over the internal network are not encrypted.
 
 Pass-through Termination
 
@@ -734,7 +735,7 @@ Pass-through Termination
 
 Re-encryption Termination
 
-    Re-encryption is a variation on edge termination, where the router terminates TLS with a certificate, then re-encrypts its connection to the endpoint, which might have a different certificate. Therefore the full path of the connection is encrypted, even over the internal network. The router uses health checks to determine the authenticity of the host. 
+    Re-encryption is a variation on edge termination, where the router terminates TLS with a certificate, then re-encrypts its connection to the endpoint, which might have a different certificate. Therefore the full path of the connection is encrypted, even over the internal network. The router uses health checks to determine the authenticity of the host.
 
 ### Route/expose without any TLS
 
@@ -1082,6 +1083,12 @@ And verify that you have no errors.
 
 ## Debug
 
+### view all roles for a user
+
+We will see both clusterroles and roles for the user flux in this case.
+
+kubectl get rolebinding,clusterrolebinding --all-namespaces -o jsonpath='{range .items[?(@.subjects[0].name=="flux")]}[{.roleRef.kind},{.roleRef.name}]{end}'
+
 ### View node load
 
 oc adm top node
@@ -1119,6 +1126,10 @@ openssl verify -CAfile ca-bundle.crt tls.crt
 openssl x509 -in broken-external.crt -text
 ```
 
+Check to see how your ca looks like:
+
+openssl x509 -in apps/prod/client-cert.crt -text -noout
+
 #### curl with cert
 
 Of course it won't be able to create a https connection to a kafka endpoint but it's a simple way to send traffic.
@@ -1136,7 +1147,7 @@ oc rsh <fluentd pod>
 cd /var/run/ocp-collector/secrets/<path to secret>
 
 # Use openssl to connect to the endpoint, in this case kafka.
-sh-4.4# echo Q | openssl s_client -showcerts -connect broker1-kafka1.domain:9093 -servername broker1-kafka1.domain -key tls.key 
+sh-4.4# echo Q | openssl s_client -showcerts -connect broker1-kafka1.domain:9093 -servername broker1-kafka1.domain -key tls.key
 -cert tls.crt -CAfile ca-bundle.crt
 ```
 
