@@ -185,6 +185,8 @@
       - [Debuging upgrade](#debuging-upgrade)
   - [Podman](#podman)
     - [Podman clean error refreshing container](#podman-clean-error-refreshing-container)
+  - [cli](#cli)
+    - [Extract tls.key from secret](#extract-tlskey-from-secret)
 
 ## OC CLI
 
@@ -1474,3 +1476,15 @@ This dosen't have anything to do with OCP but this is currently my favorit file 
 ERRO[0000] Error refreshing container f7db993e6fa423475035277f88cc09f0154dee13b257914719c18c8e62639002: error acquiring lock 0 for container f7db993e6fa423475035277f88cc09f0154dee13b257914719c18c8e62639002: file exists
 
 rm -rf ~/.local/share/containers/storage/overlay-containers/*/userdata/*
+
+## cli
+
+Good to have commands
+
+### Extract tls.key from secret
+
+Coulden't find the way to get jq to ignore the . in tls.key
+
+k get secret secret-name -o jsonpath={.data."tls\.crt"} |base64 -d > tls.crt
+
+k get secret secret-name -o jsonpath={.data."tls\.key"} |base64 -d > tls.key

@@ -221,3 +221,14 @@ spec:
     requests:
       storage: 5Gi
 ```
+
+## AZ commands
+
+### resource update
+
+Force Azure to look for resources it has. Can be good if you can see vm:s in VMSS but not in kubernetes.
+This will tell AKS to check over it's resources.
+
+az resource update --id /subscriptions/your-sub-id/resourceGroups/rg-dev-we-aks/providers/Microsoft.ContainerService/managedClusters/aks-dev-we-aks1
+
+To get the string it's easiest to go in to the azure portal under AKS to the cluster you want to force and update on and look at the URI.
