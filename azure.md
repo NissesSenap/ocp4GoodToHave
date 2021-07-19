@@ -1,7 +1,7 @@
 # Azure
 
 I'm doing a OCP 4.3 IPI install on Azure.
-In this file I will post a bunch of az commands, hopefull I will have time to convert some of these tasks in to code as well.
+In this file I will post a bunch of az commands, hopefully I will have time to convert some of these tasks in to code as well.
 
 ## My account
 
@@ -14,7 +14,7 @@ Starts a external browser where you login.
 ### Active account
 
 az account show
-
+az ad group list --query '[].displayName' -o tsv |grep pull
 Shows the account that you are currently logged in as.
 
 ### List accounts
@@ -232,3 +232,12 @@ This will tell AKS to check over it's resources.
 az resource update --id /subscriptions/your-sub-id/resourceGroups/rg-dev-we-aks/providers/Microsoft.ContainerService/managedClusters/aks-dev-we-aks1
 
 To get the string it's easiest to go in to the azure portal under AKS to the cluster you want to force and update on and look at the URI.
+
+### wildcard group list
+
+The Azure AD UI is missing a wildcard search function so you can't more or less use it.
+I also looked in to using powershell instead of AZ and there is no support for linux and the powershell AD modules.
+
+This is the current workaround I use, there are probably better ones. Please come with a issue/PR with an improvement.
+
+az ad group list --query '[].displayName' -o tsv |grep pull
