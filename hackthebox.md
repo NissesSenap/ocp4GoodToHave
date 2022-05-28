@@ -271,6 +271,11 @@ dig +noall +answer srv any.any.svc.cluster.local
 ### kubernetes tools
 
 [check capabilities etc](https://github.com/genuinetools/amicontained)
+[container analyze tool](https://github.com/brompwnie/botb)
+
+## ctf options
+
+There are a number of ways of holding a Capture The Flag (CTF). One way could potentially be: [https://github.com/redcode-labs/RedNix](https://github.com/redcode-labs/RedNix)
 
 ## install
 
