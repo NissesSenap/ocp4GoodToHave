@@ -62,3 +62,10 @@ k exec -it debug -n default -- /bin/sh
 # To become root on the node from the pod:
 chroot /host
 ```
+
+## Delete all pods in failed phases
+
+```shell
+kubectl get pod --all-namespaces --field-selector=status.phase==Failed
+kubectl delete pod --all-namespaces --field-selector=status.phase==Failed
+```
