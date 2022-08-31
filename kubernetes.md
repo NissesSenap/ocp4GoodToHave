@@ -69,3 +69,13 @@ chroot /host
 kubectl get pod --all-namespaces --field-selector=status.phase==Failed
 kubectl delete pod --all-namespaces --field-selector=status.phase==Failed
 ```
+## Delete pods in terminating
+
+In general don't use this, but it might be needed if your kubelet have hanged and then restarted or something like that.
+There is no phase update when a pod is terminating what I can find.
+So some awk magic is needed.
+
+```shell
+kubectl get pods --all-namespaces | awk '{if ($4=="Terminating") print "kubectl delete pod " $2 " -n " $1 " --force";}' | sh
+```
+
