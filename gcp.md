@@ -13,9 +13,22 @@ gcloud config list
 gcloud config set project project1
 ```
 
+### Change accounts
+
+```shell
+gcloud config configurations list
+gcloud config configurations activate default
+```
+
 ## GKE
 
 GKE specific stuff
+
+### Get login creds
+
+```shell
+gcloud container clusters get-credentials cluster-name --region europe-west1 --project project1
+```
 
 ### describe clusters
 
