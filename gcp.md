@@ -37,3 +37,34 @@ This command gives an overview of all settings that you have on your cluster.
 ```shell
 gcloud beta container clusters describe --region europe-west1 cluster-example
 ```
+
+## Security professional
+
+```shell
+# create vm with apache2
+gcloud compute instances create us-web-vm \
+--machine-type=e2-micro \
+--zone=us-east1-b \
+--network=default \
+--subnet=default \
+--tags=http-server \
+--metadata=startup-script='#! /bin/bash
+ apt-get update
+ apt-get install apache2 -y
+ echo "Page served from: US-EAST1" | \
+ tee /var/www/html/index.html
+ systemctl restart apache2'
+# get the ip address of a vm
+export EUROPE_WEB_IP=$(gcloud compute instances describe europe-web-vm --zone=europe-west2-a --format="value(networkInterfaces.networkIP)")
+# create private dn
+gcloud dns managed-zones create example --description=test --dns-name=example.com --networks=default --visibility=private
+# dns route policy
+gcloud dns record-sets create geo.example.com \
+--ttl=5 --type=A --zone=example \
+--routing-policy-type=GEO \
+--routing-policy-data="us-east1=$US_WEB_IP;europe-west2=$EUROPE_WEB_IP"
+# List dns routes
+gcloud dns record-sets list --zone=example
+# firewall http opening, don't use
+gcloud compute --project=project1 firewall-rules create allow-http-web-server --direction=INGRESS --priority=1000 --network=default --action=ALLOW --rules=tcp:80 --source-ranges=0.0.0.0/0 --target-tags=web-server
+```
