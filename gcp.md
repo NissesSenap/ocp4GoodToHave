@@ -79,3 +79,20 @@ When you run HA VPN tunnels between two Google Cloud VPCs, you need to make sure
 Two on-premises VPN gateway devices: Each of the tunnels from each interface on the Cloud VPN gateway must be connected to its own peer gateway.
 A single on-premises VPN gateway device with two interfaces: Each of the tunnels from each interface on the Cloud VPN gateway must be connected to its own interface on the peer gateway.
 A single on-premises VPN gateway device with a single interface: Both of the tunnels from each interface on the Cloud VPN gateway must be connected to the same interface on the peer gateway.
+
+## IAM
+
+### List policy bindings for SA
+
+```shell
+gcloud iam service-accounts get-iam-policy  fooobar@project1.iam.gserviceaccount.com
+```
+
+### List roles for SA
+
+```shell
+gcloud projects get-iam-policy project1  \
+--flatten="bindings[].members" \
+--format='table(bindings.role)' \
+--filter="bindings.members:fooobar@project1.iam.gserviceaccount.com"
+```
