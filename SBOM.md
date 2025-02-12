@@ -166,3 +166,78 @@ But they have a policy engine and slack integration.
 But the project will probably never solve everything I want. They are currently working towards making DT more operations friednly with the [hyades](https://github.com/DependencyTrack/hyades/) project.
 Witch will make DT decent in a Kubernetes env, and support better scale (IBM is a big bagger of DT).
 But they have been working on hyades and they are scope creeping delux and it never gets merged in to DT it self. So I don't expect any miracles any time soon.
+
+## Genaerting SBOM
+
+I recently started playing with how to generate SBOMs and as everyting else it's a jungle.
+I'm focusing on CycloneDX since im mostly leaning towards using DT.
+
+Sadly different tools interpet data differnetly, for example [components.type](https://cyclonedx.org/docs/1.6/json/#components_items_type) are both framework or library.
+For example [https://github.com/CycloneDX/cdxgen](https://github.com/CycloneDX/cdxgen) generates a SBOM that uses framework.
+
+While [https://github.com/CycloneDX/cyclonedx-gomod](https://github.com/CycloneDX/cyclonedx-gomod), uses library, when they both are built on the go files.
+
+I have uploaded some raw SBOM files to look at here in a [PR](https://github.com/NissesSenap/sbom-api/pull/8) where i play around.
+
+### Summarize
+
+I think it's resonable that you should generate two SBOMs per application, once for your container and once for your programming language.
+There is probably some decent way of ignoring all the package info from your app in the container, so you don't get dupilicate app info, with different info.
+If not, probably just use `jq` to remove a bunch of stuff from yor app in the container SBOM and then use cyclonedx to merge them.
+
+### cdxgen
+
+```shell
+cdxgen -t golang -o go-bom.json .
+```
+
+### cdxgen container image
+
+```shell
+export KO_DOCKER_REPO=ko.local
+ko build --sbom=none --bare --platform linux/amd64 -t test1 --image-refs .digest main.go
+
+# tell cdxgen to gather licenses from the generated docker artifact
+export FETCH_LICENSE=true
+cdxgen -t oci ko.local:5b7b28cfdd64a6217228283bea8e6ca0e7d746c6a770ca88976610ec650b97be -spec-version  1.6 -o container-bom.json
+```
+
+### cyclonedx-gomod
+
+Using this command I was able to find the version.
+
+```shell
+cyclonedx-gomod app  -json -output gomod.bom.json -packages -files -licenses -main cmd/sbom-api/
+```
+
+### cyclonedx merge and diff
+
+Merge can be used to put multiple SBOM together, which is useful. But make sure that they contain different info.
+For example the merge tool can't handle similar pickages but not exact, so when I used cyclonedx-gomod and cdxgen that was built on my go packages.
+And it wasnt able to merge the different components in a good way.
+
+```shell
+# merge
+cyclonedx merge --input-files gomod.bom.json container-bom.json  --output-file merged.json
+```
+
+You could think that diff is used to compare different component output and similar stuff.
+But it's more or less just to compare package versions, using component-versions.
+
+```shell
+# diff
+$ cyclonedx diff go-bom-version1.json go-bom-version2.json --output-format text --component-versions
+Component versions that have changed:
+-  golang.org/x/text @ v0.21.0
++  golang.org/x/text @ v0.21.1
+```
+
+So could be useful if you don't have something like DT.
+
+## Minder
+
+[Minder](https://mindersec.dev/) is a part of [OpenSSF](https://openssf.org/blog/2024/10/28/openssf-adds-minder-as-a-sandbox-project-to-simplify-the-integration-and-use-of-open-source-security-tools/)
+as a sandbox project. It doesen't have anything to do with SBOM, but it's an interesting tool
+
+It can be used to setup best practices for your GitHub org, anad they more or less listens to all events from GitHub.
+They also have a cloud solution but no prizing info, the creators of the software is one of the creator of Sigstore and Kubernetes, so they know there stuff.
