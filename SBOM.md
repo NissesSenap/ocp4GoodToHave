@@ -241,3 +241,8 @@ as a sandbox project. It doesen't have anything to do with SBOM, but it's an int
 
 It can be used to setup best practices for your GitHub org, anad they more or less listens to all events from GitHub.
 They also have a cloud solution but no prizing info, the creators of the software is one of the creator of Sigstore and Kubernetes, so they know there stuff.
+
+## stacklok insights
+
+Help you to perform due diligence on third party packages and can give you a overall health of an project.
+[https://www.insight.stacklok.com/](https://www.insight.stacklok.com/)
